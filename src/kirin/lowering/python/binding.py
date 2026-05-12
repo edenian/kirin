@@ -1,3 +1,4 @@
+import inspect
 from typing import TYPE_CHECKING, Generic, TypeVar, Callable, ParamSpec
 from dataclasses import dataclass
 
@@ -59,6 +60,18 @@ def wraps(parent: type["Statement"]):
     """
 
     def wrapper(func: Callable[Params, RetType]) -> Binding[Params, RetType]:
-        return Binding(parent)
+        binding = Binding(parent)
+
+        object.__setattr__(binding, "__wrapped__", func)
+        object.__setattr__(binding, "__signature__", inspect.signature(func))
+        object.__setattr__(binding, "__doc__", inspect.getdoc(func))
+        object.__setattr__(binding, "__name__", func.__name__)
+        object.__setattr__(binding, "__qualname__", func.__qualname__)
+        object.__setattr__(binding, "__module__", func.__module__)
+        object.__setattr__(
+            binding, "__annotations__", getattr(func, "__annotations__", {})
+        )
+
+        return binding
 
     return wrapper
